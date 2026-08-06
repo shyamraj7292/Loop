@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Loop{% endblock %}</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <style>
+    :root {
+      --bg: #0f1115; --card: #171a21; --fg: #e7e9ee; --muted: #9aa3b2;
+      --accent: #4f9dff; --line: #262b36; --pill: #222834;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f7f8fa; --card: #ffffff; --fg: #16181d; --muted: #5b6472;
+        --accent: #1e6fe0; --line: #e6e8ed; --pill: #eef1f6;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 24px 18px 64px; }
+    header.masthead { border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 20px; }
+    .brand { font-weight: 800; letter-spacing: -.02em; font-size: 26px; }
+    .brand a { color: var(--fg); text-decoration: none; }
+    .tag { color: var(--muted); font-size: 14px; }
+    .delta {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 22px; font-size: 15px;
+    }
+    .delta b { color: var(--accent); }
+    h2.section { font-size: 13px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin: 26px 0 10px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 12px; text-decoration: none; color: inherit;
+      display: block;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card h3 { margin: 0 0 6px; font-size: 17px; line-height: 1.3; }
+    .summary { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      background: var(--pill); color: var(--muted); border-radius: 999px;
+      padding: 2px 10px; font-size: 12px;
+    }
+    .pill.new { background: rgba(79,157,255,.16); color: var(--accent); }
+    .event { border-left: 2px solid var(--line); padding: 4px 0 14px 14px; margin-left: 4px; }
+    .event .when { color: var(--muted); font-size: 12px; }
+    .claim { font-size: 13px; color: var(--muted); margin: 4px 0 0 8px; }
+    .ai-note { color: var(--muted); font-size: 12px; margin-top: 30px;
+      border-top: 1px solid var(--line); padding-top: 12px; }
+    button {
+      background: var(--accent); color: white; border: 0; border-radius: 8px;
+      padding: 8px 14px; font-size: 14px; cursor: pointer;
+    }
+    a.back { color: var(--accent); text-decoration: none; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="masthead">
+      <div class="brand"><a href="/">Loop</a></div>
+      <div class="tag">Everything you missed, in five minutes.</div>
+    </header>
+    {% block content %}{% endblock %}
+    <div class="ai-note">
+      Summaries are AI-generated. Every claim links back to its sources — read the
+      summary, then click through. Loop paraphrases, attributes, and links out.
+    </div>
+  </div>
+</body>
+</html>

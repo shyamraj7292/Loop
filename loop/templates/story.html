@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ story.title or "Story" }} — Loop{% endblock %}
+{% block content %}
+
+<a class="back" href="/">&larr; Back to your brief</a>
+
+<h2 class="section" style="margin-top:18px;">Story arc</h2>
+<div class="card">
+  <h3>{{ story.title or "(untitled story)" }}</h3>
+  {% if story.state_summary %}
+    <p class="summary">{{ story.state_summary }}</p>
+  {% endif %}
+  <div class="meta">
+    <span class="pill">{{ story.status }}</span>
+    <span class="pill">importance {{ "%.3f"|format(story.importance) }}</span>
+    {% if story.last_activity %}
+      <span class="pill">updated {{ story.last_activity.strftime("%Y-%m-%d %H:%M") }} UTC</span>
+    {% endif %}
+  </div>
+</div>
+
+<h2 class="section">Timeline — {{ events|length }} event{{ "s" if events|length != 1 else "" }}</h2>
+
+{% if events %}
+  {% for e in events %}
+    <div class="event">
+      <div class="when">
+        {% if e.occurred_at %}{{ e.occurred_at.strftime("%Y-%m-%d %H:%M") }} UTC{% endif %}
+      </div>
+      <div>{{ e.summary }}</div>
+      {% for c in e.claims %}
+        <div class="claim">
+          — {{ c.text }}
+          <span class="tag">({{ c.source_article_ids|length }} source{{ "s" if c.source_article_ids|length != 1 else "" }})</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  <button id="mark-read"
+    onclick='markRead([{{ events|map(attribute="id")|join(",") }}])'>
+    Mark all as read
+  </button>
+  <script>
+    async function markRead(ids) {
+      const btn = document.getElementById("mark-read");
+      btn.disabled = true;
+      try {
+        const r = await fetch("/api/read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_ids: ids }),
+        });
+        const data = await r.json();
+        btn.textContent = `Marked ${data.marked} read`;
+      } catch (e) {
+        btn.textContent = "Failed — retry";
+        btn.disabled = false;
+      }
+    }
+  </script>
+{% else %}
+  <p class="summary">No events yet — this story is still gathering coverage.</p>
+{% endif %}
+
+{% endblock %}

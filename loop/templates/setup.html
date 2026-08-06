@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Loop — setup{% endblock %}
+{% block content %}
+<div class="card">
+  <h3>No user yet</h3>
+  <p class="summary">
+    There's no user with id <b>{{ user_id }}</b>. Seed the database first:
+  </p>
+  <pre class="summary">docker compose run --rm api python -m loop.seed --sources sources.yaml</pre>
+  <p class="summary">
+    Then run the pipeline (<code>python -m loop.cli run</code>) and refresh. You
+    can also point at a different user with the <code>X-User-Id</code> header.
+  </p>
+</div>
+{% endblock %}

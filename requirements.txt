@@ -1,0 +1,42 @@
+# --- Web / API ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+jinja2==3.1.5
+python-multipart==0.0.20
+
+# --- Database ---
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3
+pgvector==0.3.6
+alembic==1.14.0
+
+# --- Config / models ---
+pydantic==2.10.4
+pydantic-settings==2.7.0
+pyyaml==6.0.2
+python-dateutil==2.9.0.post0
+
+# --- Ingestion / extraction ---
+feedparser==6.0.11
+trafilatura==2.0.0
+httpx==0.28.1
+tenacity==9.0.0
+
+# --- ML / embeddings ---
+sentence-transformers==3.3.1
+numpy==2.2.1
+
+# --- LLM ---
+anthropic==0.42.0
+
+# --- Background work ---
+celery==5.4.0
+redis==5.2.1
+apscheduler==3.11.0
+
+# --- CLI ---
+typer==0.15.1
+
+# --- Dev / test ---
+pytest==8.3.4
+ruff==0.8.4

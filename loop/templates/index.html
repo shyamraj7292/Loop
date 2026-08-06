@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Loop — your brief{% endblock %}
+{% block content %}
+
+<div class="delta">
+  {% if brief.days_away %}
+    Away for <b>{{ brief.days_away }}</b> day{{ "s" if brief.days_away != 1 else "" }} ·
+  {% endif %}
+  <b>{{ brief.stories_moved }}</b> stor{{ "ies" if brief.stories_moved != 1 else "y" }} moved ·
+  <b>{{ brief.stories_new }}</b> new
+  <span class="tag">&nbsp;·&nbsp; {{ length }}-minute brief</span>
+</div>
+
+{% set section_titles = {
+    "important_regardless": "Important — regardless of your interests",
+    "for_you": "For you"
+} %}
+
+{% for section in brief.sections %}
+  {% if section.stories %}
+    <h2 class="section">{{ section_titles.get(section.label, section.label) }}</h2>
+    {% for s in section.stories %}
+      <a class="card" href="/story/{{ s.id }}">
+        <h3>{{ s.title or "(untitled story)" }}</h3>
+        {% if s.state_summary %}<p class="summary">{{ s.state_summary }}</p>{% endif %}
+        <div class="meta">
+          {% if s.new_event_count %}
+            <span class="pill new">{{ s.new_event_count }} new</span>
+          {% endif %}
+          <span class="pill">{{ s.distinct_sources }} source{{ "s" if s.distinct_sources != 1 else "" }}</span>
+          <span class="pill">importance {{ s.importance }}</span>
+        </div>
+      </a>
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
+{% set empty = brief.sections | map(attribute='stories') | map('length') | sum %}
+{% if empty == 0 %}
+  <div class="card">
+    <h3>Nothing here yet</h3>
+    <p class="summary">
+      No stories have been synthesised. Run the pipeline:
+      <code>python -m loop.cli run</code> (or wait for the scheduler), then refresh.
+    </p>
+  </div>
+{% endif %}
+
+{% endblock %}

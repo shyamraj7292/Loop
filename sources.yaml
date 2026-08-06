@@ -1,0 +1,105 @@
+# ---------------------------------------------------------------------------
+# Loop source registry.
+#
+# Each source declares a feed URL plus metadata used later in ranking:
+#   country          ISO country code
+#   lang             ISO language code
+#   authority_weight hand-assigned 0..1 score (see README > The insight / Rank)
+#
+# Authority weight is deliberately manual, not inferred. New / unknown domains
+# should start near zero. When adding a source in a PR, justify the weight.
+# ---------------------------------------------------------------------------
+
+sources:
+  # --- India, national English ---
+  - name: The Hindu — National
+    feed_url: https://www.thehindu.com/news/national/feeder/default.rss
+    homepage: https://www.thehindu.com/
+    country: IN
+    lang: en
+    authority_weight: 0.9
+
+  - name: The Hindu — Business
+    feed_url: https://www.thehindu.com/business/feeder/default.rss
+    homepage: https://www.thehindu.com/business/
+    country: IN
+    lang: en
+    authority_weight: 0.9
+
+  - name: Indian Express — India
+    feed_url: https://indianexpress.com/section/india/feed/
+    homepage: https://indianexpress.com/
+    country: IN
+    lang: en
+    authority_weight: 0.85
+
+  - name: Indian Express — Business
+    feed_url: https://indianexpress.com/section/business/feed/
+    homepage: https://indianexpress.com/section/business/
+    country: IN
+    lang: en
+    authority_weight: 0.85
+
+  - name: Livemint — Economy
+    feed_url: https://www.livemint.com/rss/economy
+    homepage: https://www.livemint.com/
+    country: IN
+    lang: en
+    authority_weight: 0.8
+
+  - name: Business Standard — Economy & Policy
+    feed_url: https://www.business-standard.com/rss/economy-policy-102.rss
+    homepage: https://www.business-standard.com/
+    country: IN
+    lang: en
+    authority_weight: 0.8
+
+  - name: NDTV — India
+    feed_url: https://feeds.feedburner.com/ndtvnews-india-news
+    homepage: https://www.ndtv.com/india
+    country: IN
+    lang: en
+    authority_weight: 0.7
+
+  - name: The Times of India — Top Stories
+    feed_url: https://timesofindia.indiatimes.com/rssfeedstopstories.cms
+    homepage: https://timesofindia.indiatimes.com/
+    country: IN
+    lang: en
+    authority_weight: 0.6
+
+  - name: Scroll.in
+    feed_url: https://feeds.feedburner.com/ScrollinArticles.rss
+    homepage: https://scroll.in/
+    country: IN
+    lang: en
+    authority_weight: 0.65
+
+  # --- International (for corroboration / global stories) ---
+  - name: Reuters — World
+    feed_url: https://www.reutersagency.com/feed/?best-topics=world&post_type=best
+    homepage: https://www.reuters.com/
+    country: GB
+    lang: en
+    authority_weight: 0.95
+
+  - name: BBC News — World
+    feed_url: https://feeds.bbci.co.uk/news/world/rss.xml
+    homepage: https://www.bbc.com/news/world
+    country: GB
+    lang: en
+    authority_weight: 0.9
+
+  - name: Al Jazeera — All
+    feed_url: https://www.aljazeera.com/xml/rss/all.xml
+    homepage: https://www.aljazeera.com/
+    country: QA
+    lang: en
+    authority_weight: 0.8
+
+  - name: The Guardian — World
+    feed_url: https://www.theguardian.com/world/rss
+    homepage: https://www.theguardian.com/world
+    country: GB
+    lang: en
+    authority_weight: 0.85
