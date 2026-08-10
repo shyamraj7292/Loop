@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     body_retention_hours: int = Field(default=72, alias="BODY_RETENTION_HOURS")
 
     # --- Ingestion ---
-    fetch_interval_minutes: int = Field(default=12, alias="FETCH_INTERVAL_MINUTES")
+    fetch_interval_minutes: int = Field(default=5, alias="FETCH_INTERVAL_MINUTES")
     fetch_max_concurrency: int = Field(default=8, alias="FETCH_MAX_CONCURRENCY")
     user_agent: str = Field(
         default="LoopNewsBot/0.1 (+https://github.com/you/loop)", alias="USER_AGENT"

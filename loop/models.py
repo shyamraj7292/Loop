@@ -44,6 +44,9 @@ class Source(Base):
     homepage: Mapped[str | None] = mapped_column(String(1024))
     country: Mapped[str | None] = mapped_column(String(8))
     lang: Mapped[str | None] = mapped_column(String(8))
+    # Topical bucket (world, business, technology, sports, ...). Used to group
+    # the brief into named, collapsible sections.
+    category: Mapped[str | None] = mapped_column(String(32))
     # Hand-assigned 0..1 authority score used in ranking.
     authority_weight: Mapped[float] = mapped_column(Float, default=0.0)
 

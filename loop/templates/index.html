@@ -82,12 +82,28 @@
   .empty h3 { font-family:var(--serif); font-size:22px; margin:0 0 8px; }
   .empty p { color:var(--muted); max-width:460px; margin:0 auto; }
   .empty code { background:var(--surface-2); padding:2px 6px; border-radius:6px; font-size:.9em; }
+
+  /* ---------- Collapsible category sections ---------- */
+  details.cat { border-top:1px solid var(--line); margin:0; }
+  details.cat:last-of-type { border-bottom:1px solid var(--line); }
+  .cat-head { list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px;
+    padding:18px 4px; user-select:none; }
+  .cat-head::-webkit-details-marker { display:none; }
+  .cat-head:hover .cat-title { color:var(--accent); }
+  .cat-title { font-family:var(--display); font-weight:600; font-size: clamp(16px,2.6vw,20px);
+    letter-spacing:.12em; text-transform:uppercase; margin:0; transition:color .15s ease; }
+  .cat-chev { margin-left:auto; color:var(--muted); font-size:15px; transition:transform .2s ease; }
+  details.cat[open] .cat-chev { transform:rotate(180deg); }
+  .cat-grid { padding:2px 0 22px; }
+  .cat-tag { font-family:var(--display); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
 </style>
 
 {% macro story_card(s, lead=false) %}
 <a class="card {{ 'card-lead' if lead else '' }}" href="/story/{{ s.id }}">
   <div class="card-kicker">
     {% if s.new_event_count %}<span class="badge-new">{{ s.new_event_count }} NEW</span>{% endif %}
+    {% if s.category_title %}<span class="cat-tag">{{ s.category_title }}</span>{% endif %}
     <span class="chip src">{{ s.distinct_sources }} source{{ 's' if s.distinct_sources != 1 else '' }}</span>
     <span class="chip-ai"><span class="orb-mini"></span>AI</span>
   </div>
@@ -131,22 +147,50 @@
 {% else %}
   {% for section in brief.sections %}
     {% if section.stories %}
-      <section class="rail rail-{{ 'important' if section.label == 'important_regardless' else 'you' }}">
-        <div class="rail-head">
-          <span class="rail-bar"></span>
-          <h2>{{ section_titles.get(section.label, section.label) }}</h2>
-          <span class="rail-count">{{ section.stories|length }}</span>
-        </div>
-        {% if section.label == 'important_regardless' %}
+      {% if section.collapsible %}
+        {# Named, collapsible category section — press the header to open #}
+        <details class="cat" data-cat="{{ section.label }}" {{ 'open' if section.open else '' }}>
+          <summary class="cat-head">
+            <span class="rail-bar"></span>
+            <span class="cat-title">{{ section.title }}</span>
+            <span class="rail-count">{{ section.stories|length }}</span>
+            <span class="cat-chev">▾</span>
+          </summary>
+          <div class="grid cat-grid">
+            {% for s in section.stories %}{{ story_card(s) }}{% endfor %}
+          </div>
+        </details>
+      {% else %}
+        {# Top Stories — always open, lead card + grid #}
+        <section class="rail rail-important">
+          <div class="rail-head">
+            <span class="rail-bar"></span>
+            <h2>{{ section.title }}</h2>
+            <span class="rail-count">{{ section.stories|length }}</span>
+          </div>
           {{ story_card(section.stories[0], lead=true) }}
           {% if section.stories|length > 1 %}
             <div class="grid">{% for s in section.stories[1:] %}{{ story_card(s) }}{% endfor %}</div>
           {% endif %}
-        {% else %}
-          <div class="grid">{% for s in section.stories %}{{ story_card(s) }}{% endfor %}</div>
-        {% endif %}
-      </section>
+        </section>
+      {% endif %}
     {% endif %}
   {% endfor %}
 {% endif %}
+
+<script>
+  (function () {
+    // Remember which category sections are open across the auto-refresh.
+    document.querySelectorAll("details.cat").forEach(function (d) {
+      var key = "loop.cat." + d.dataset.cat;
+      if (localStorage.getItem(key) === "1") d.open = true;
+      d.addEventListener("toggle", function () {
+        localStorage.setItem(key, d.open ? "1" : "0");
+      });
+    });
+    // Auto-refresh every 5 minutes so new developments appear without a manual
+    // reload (the worker re-runs the pipeline on the same cadence).
+    setTimeout(function () { location.reload(); }, 5 * 60 * 1000);
+  })();
+</script>
 {% endblock %}

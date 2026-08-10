@@ -56,6 +56,19 @@
     letter-spacing:.06em; font-size:13px; }
   .btn-read:disabled { opacity:.55; cursor:default; }
   .no-events { color:var(--muted); }
+
+  .sources { display:flex; flex-direction:column; gap:8px; }
+  .source-row { display:flex; align-items:center; gap:12px; background:var(--surface);
+    border:1px solid var(--line); border-radius:12px; padding:12px 15px;
+    transition: border-color .15s ease, transform .15s ease; }
+  .source-row:hover { border-color: color-mix(in srgb,var(--accent) 45%, var(--line)); transform: translateY(-2px); }
+  .source-name { flex:none; font-family:var(--display); font-weight:600; font-size:11px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--accent); min-width:120px; }
+  .source-title { flex:1; min-width:0; font-size:14px; color:var(--fg-dim);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .source-go { flex:none; font-family:var(--display); font-size:12px; color:var(--muted); }
+  .outlink-note { color:var(--muted); font-size:12.5px; margin-top:14px; }
+  @media (max-width:560px){ .source-name { min-width:0; } .source-title { white-space:normal; } }
 </style>
 
 <a class="back" href="/">&larr; Back to your briefing</a>
@@ -133,5 +146,19 @@
   </script>
 {% else %}
   <p class="no-events">No events yet — this story is still gathering coverage.</p>
+{% endif %}
+
+{% if sources %}
+<div class="tl-head" style="margin-top:38px"><span class="rail-bar"></span>Read the full report — {{ sources|length }} source{{ 's' if sources|length != 1 else '' }}</div>
+<div class="sources">
+  {% for src in sources %}
+    <a class="source-row" href="{{ src.url }}" target="_blank" rel="noopener noreferrer">
+      <span class="source-name">{{ src.source }}</span>
+      <span class="source-title">{{ src.title or src.url }}</span>
+      <span class="source-go">Open ↗</span>
+    </a>
+  {% endfor %}
+</div>
+<p class="outlink-note">Loop paraphrases and links out — tap any source to read the original, complete article at the publisher.</p>
 {% endif %}
 {% endblock %}

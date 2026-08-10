@@ -1,12 +1,11 @@
-"""Brief assembly — the read-state-aware delta.
+"""Brief assembly — the read-state-aware delta, grouped by category.
 
 Open Loop after twelve days and it tells you "8 stories moved, 2 are new", then
-shows only the developments that happened while you were gone. That delta is the
-entire product (README > The insight); everything else is plumbing that makes it
-possible.
-
-The `important_regardless` section is non-negotiable and cannot be disabled by
-the user (README > Filter bubbles). Personalisation ranks the rest.
+shows only the developments that happened while you were gone (README > The
+insight). The brief leads with a cross-category "Top Stories" rail (the
+non-negotiable important_regardless section — README > Filter bubbles), then
+splits the rest into named, collapsible category sections (World, Business,
+Technology, Sports, ...).
 """
 
 from __future__ import annotations
@@ -19,6 +18,7 @@ from sqlalchemy.orm import Session
 from loop.models import (
     Article,
     Event,
+    Source,
     Story,
     StoryArticle,
     User,
@@ -26,11 +26,37 @@ from loop.models import (
 )
 from loop.pipeline.rank import personal_score
 
-# Reading-time budget -> number of stories to surface.
-_LENGTH_BUDGET = {2: 4, 5: 8, 15: 20}
+# Reading-time budget -> (top-stories cap, per-category cap).
+_LENGTH_BUDGET = {2: (3, 4), 5: (5, 8), 15: (8, 20)}
 
-# A story is "important regardless" (shown to everyone) above this importance.
-_IMPORTANT_THRESHOLD = 0.6
+# A story is "top" (shown to everyone, cross-category) above this importance,
+# or simply by being among the most important when few clear the bar.
+_TOP_THRESHOLD = 0.55
+
+# Display order + titles for category sections. Categories come from the
+# source registry (sources.yaml); anything unmapped falls into "general".
+_CATEGORY_ORDER = [
+    "world",
+    "india",
+    "business",
+    "technology",
+    "science",
+    "sports",
+    "health",
+    "entertainment",
+    "general",
+]
+_CATEGORY_TITLES = {
+    "world": "World",
+    "india": "India",
+    "business": "Business",
+    "technology": "Technology",
+    "science": "Science",
+    "sports": "Sports",
+    "health": "Health",
+    "entertainment": "Entertainment",
+    "general": "More",
+}
 
 
 def _utcnow() -> datetime:
@@ -61,8 +87,21 @@ def _distinct_sources(session: Session, story_id: int) -> int:
     ).scalar_one()
 
 
+def _story_category(session: Session, story_id: int) -> str:
+    """Majority category among the story's articles' sources."""
+    rows = session.execute(
+        select(Source.category, func.count().label("n"))
+        .join(Article, Article.source_id == Source.id)
+        .join(StoryArticle, StoryArticle.article_id == Article.id)
+        .where(StoryArticle.story_id == story_id, Source.category.is_not(None))
+        .group_by(Source.category)
+        .order_by(func.count().desc())
+    ).all()
+    return rows[0][0] if rows else "general"
+
+
 def _story_card(
-    session: Session, story: Story, *, new_event_count: int
+    session: Session, story: Story, *, new_event_count: int, category: str
 ) -> dict:
     return {
         "id": story.id,
@@ -72,6 +111,8 @@ def _story_card(
         "new_event_count": new_event_count,
         "distinct_sources": _distinct_sources(session, story.id),
         "importance": round(story.importance, 3),
+        "category": category,
+        "category_title": _CATEGORY_TITLES.get(category, category.title()),
         "last_activity": story.last_activity.isoformat()
         if story.last_activity
         else None,
@@ -79,15 +120,14 @@ def _story_card(
 
 
 def build_brief(session: Session, user: User, *, length: int = 5) -> dict:
-    """Assemble the brief payload (matches README > API reference shape)."""
+    """Assemble the brief payload: delta metadata + Top + category sections."""
     now = _utcnow()
     last_seen = _last_seen_at(session, user.id)
     days_away = (now - last_seen).days if last_seen else 0
 
     seen_ids = _seen_event_ids(session, user.id)
-    budget = _LENGTH_BUDGET.get(length, max(length, 3))
+    top_cap, cat_cap = _LENGTH_BUDGET.get(length, (5, 8))
 
-    # Candidate stories: active stories that carry at least one event.
     stories = list(
         session.execute(
             select(Story)
@@ -102,9 +142,8 @@ def build_brief(session: Session, user: User, *, length: int = 5) -> dict:
 
     stories_moved = 0
     stories_new = 0
+    cards: list[dict] = []  # story cards with unseen events
 
-    # Per-story: unseen event count and whether it counts as moved / new.
-    enriched: list[tuple[Story, int, int]] = []  # (story, unseen, total)
     for story in stories:
         event_rows = session.execute(
             select(Event.id).where(Event.story_id == story.id)
@@ -113,8 +152,14 @@ def build_brief(session: Session, user: User, *, length: int = 5) -> dict:
         unseen = sum(1 for eid in event_rows if eid not in seen_ids)
         if unseen == 0:
             continue
-        enriched.append((story, unseen, total))
-        # "New" if the user has never seen any of its events; "moved" otherwise.
+
+        category = _story_category(session, story.id)
+        card = _story_card(
+            session, story, new_event_count=unseen, category=category
+        )
+        card["_importance_raw"] = story.importance
+        cards.append(card)
+
         if last_seen is not None and story.first_seen > last_seen:
             stories_new += 1
         elif unseen == total:
@@ -122,52 +167,65 @@ def build_brief(session: Session, user: User, *, length: int = 5) -> dict:
         else:
             stories_moved += 1
 
-    # --- Section 1: important_regardless (never personalised, never disabled) ---
-    important = [
-        (s, unseen)
-        for (s, unseen, _total) in enriched
-        if s.importance >= _IMPORTANT_THRESHOLD
-    ]
-    important.sort(key=lambda t: t[0].importance, reverse=True)
-    important = important[: max(budget // 2, 2)]
-    important_ids = {s.id for s, _ in important}
-
-    # --- Section 2: for_you (personalised ranking of the remainder) ---
-    remainder = [
-        (s, unseen, total)
-        for (s, unseen, total) in enriched
-        if s.id not in important_ids
-    ]
-
-    def _score(item: tuple[Story, int, int]) -> float:
-        story, _unseen, total = item
-        seen_fraction = 0.0 if total == 0 else (total - _unseen) / total
-        return personal_score(session, user, story, seen_fraction=seen_fraction)
-
-    remainder.sort(key=_score, reverse=True)
-    for_you = remainder[: max(budget - len(important), 0)]
+    # --- Top Stories: cross-category highlights (never disabled) ---
+    by_importance = sorted(cards, key=lambda c: c["_importance_raw"], reverse=True)
+    top = by_importance[:top_cap]
 
     sections = [
         {
-            "label": "important_regardless",
-            "stories": [
-                _story_card(session, s, new_event_count=unseen)
-                for s, unseen in important
-            ],
-        },
-        {
-            "label": "for_you",
-            "stories": [
-                _story_card(session, s, new_event_count=unseen)
-                for s, unseen, _ in for_you
-            ],
-        },
+            "label": "top",
+            "title": "Top Stories",
+            "collapsible": False,
+            "open": True,
+            "stories": top,
+        }
     ]
+
+    # --- Category sections (collapsible) ---
+    by_category: dict[str, list[dict]] = {}
+    for card in cards:
+        by_category.setdefault(card["category"], []).append(card)
+
+    for cat in _CATEGORY_ORDER:
+        items = by_category.get(cat)
+        if not items:
+            continue
+        items = sorted(items, key=lambda c: c["_importance_raw"], reverse=True)
+        sections.append(
+            {
+                "label": cat,
+                "title": _CATEGORY_TITLES.get(cat, cat.title()),
+                "collapsible": True,
+                "open": False,
+                "stories": items[:cat_cap],
+            }
+        )
+
+    # Any categories not in the fixed order (defensive).
+    for cat, items in by_category.items():
+        if cat not in _CATEGORY_ORDER:
+            sections.append(
+                {
+                    "label": cat,
+                    "title": cat.title(),
+                    "collapsible": True,
+                    "open": False,
+                    "stories": sorted(
+                        items, key=lambda c: c["_importance_raw"], reverse=True
+                    )[:cat_cap],
+                }
+            )
+
+    # Strip internal sort key from the payload.
+    for section in sections:
+        for card in section["stories"]:
+            card.pop("_importance_raw", None)
 
     return {
         "generated_at": now.isoformat(),
         "days_away": days_away,
         "stories_moved": stories_moved,
         "stories_new": stories_new,
+        "total_stories": len(cards),
         "sections": sections,
     }

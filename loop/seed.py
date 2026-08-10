@@ -36,6 +36,7 @@ def seed_sources(path: str) -> int:
                 existing.homepage = entry.get("homepage")
                 existing.country = entry.get("country")
                 existing.lang = entry.get("lang")
+                existing.category = entry.get("category")
                 existing.authority_weight = float(entry.get("authority_weight", 0.0))
             else:
                 session.add(
@@ -45,6 +46,7 @@ def seed_sources(path: str) -> int:
                         homepage=entry.get("homepage"),
                         country=entry.get("country"),
                         lang=entry.get("lang"),
+                        category=entry.get("category"),
                         authority_weight=float(entry.get("authority_weight", 0.0)),
                         active=True,
                     )

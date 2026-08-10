@@ -18,17 +18,12 @@ def render_brief_text(brief: dict) -> str:
         f"{brief['stories_moved']} moved · {brief['stories_new']} new"
     )
 
-    label_titles = {
-        "important_regardless": "IMPORTANT — regardless of your interests",
-        "for_you": "FOR YOU",
-    }
-
     for section in brief["sections"]:
         stories = section["stories"]
         if not stories:
             continue
         lines.append("")
-        lines.append(label_titles.get(section["label"], section["label"].upper()))
+        lines.append(section.get("title", section["label"]).upper())
         lines.append("-" * 60)
         for s in stories:
             lines.append(f"• {s['title'] or '(untitled story)'}")

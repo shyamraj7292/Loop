@@ -74,6 +74,29 @@ def story_page(
             request, "not_found.html", {"story_id": story_id}, status_code=404
         )
     events = sorted(s.events, key=lambda e: e.occurred_at or e.id)
+
+    # The original reporting behind the story, so the reader can open the full
+    # article ("read the entire news"). Loop links out, never republishes.
+    from sqlalchemy import select
+
+    from loop.models import Article, Source, StoryArticle
+
+    source_rows = session.execute(
+        select(Article.url_canonical, Article.title, Source.name, Article.published_at)
+        .join(StoryArticle, StoryArticle.article_id == Article.id)
+        .join(Source, Source.id == Article.source_id)
+        .where(StoryArticle.story_id == story_id)
+        .order_by(Article.published_at.desc().nullslast())
+    ).all()
+    sources = [
+        {
+            "url": r[0],
+            "title": r[1],
+            "source": r[2],
+            "published_at": r[3],
+        }
+        for r in source_rows
+    ]
     return templates.TemplateResponse(
-        request, "story.html", {"story": s, "events": events}
+        request, "story.html", {"story": s, "events": events, "sources": sources}
     )
