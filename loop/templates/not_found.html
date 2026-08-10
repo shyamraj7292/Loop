@@ -1,8 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Not found — Loop{% endblock %}
+{% block title %}Off air — Loop AI News{% endblock %}
 {% block content %}
-<div class="card">
-  <h3>Story {{ story_id }} not found</h3>
-  <p class="summary"><a class="back" href="/">&larr; Back to your brief</a></p>
+<style>
+  .notice { text-align:center; padding: 70px 20px; }
+  .notice .orb { width:76px; height:76px; margin:0 auto 22px; filter: grayscale(.4); }
+  .notice h3 { font-family:var(--serif); font-size:26px; margin:0 0 10px; }
+  .notice p { color:var(--muted); margin:0 0 18px; }
+  .notice a { font-family:var(--display); letter-spacing:.06em; color:var(--accent); }
+</style>
+<div class="notice">
+  <div class="orb"></div>
+  <h3>Story {{ story_id }} is off air</h3>
+  <p>We couldn't find that story in the newsroom.</p>
+  <a href="/">&larr; Back to your briefing</a>
 </div>
 {% endblock %}

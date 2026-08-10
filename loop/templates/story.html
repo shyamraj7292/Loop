@@ -1,45 +1,117 @@
 {% extends "base.html" %}
-{% block title %}{{ story.title or "Story" }} — Loop{% endblock %}
+{% block title %}{{ story.title or "Story" }} — Loop AI News{% endblock %}
 {% block content %}
+<style>
+  .back { display:inline-flex; align-items:center; gap:7px; font-family:var(--display); font-size:13px;
+    letter-spacing:.06em; color:var(--accent); margin-bottom:20px; }
+  .back:hover { text-decoration:underline; }
 
-<a class="back" href="/">&larr; Back to your brief</a>
+  .sh-kicker { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .sh-dev { font-family:var(--display); font-weight:600; letter-spacing:.16em; font-size:12px;
+    color:var(--live); display:inline-flex; align-items:center; gap:7px; }
+  .sh-title { font-family:var(--serif); font-weight:600; font-size: clamp(24px,4.6vw,40px);
+    line-height:1.14; margin:0 0 16px; letter-spacing:-.01em; }
+  .sh-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pill { font-family:var(--display); font-size:11px; letter-spacing:.06em; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:3px 10px; }
+  .pill.status { text-transform:uppercase; color:var(--ok);
+    border-color: color-mix(in srgb,var(--ok) 40%, transparent); }
+  .sh-meter { display:inline-flex; align-items:center; gap:8px; }
+  .meter { position:relative; width:120px; height:5px; border-radius:999px; background:var(--surface-2);
+    border:1px solid var(--line); overflow:hidden; }
+  .meter span { position:absolute; inset:0 auto 0 0; border-radius:999px;
+    background: linear-gradient(90deg, var(--accent), var(--brand)); }
 
-<h2 class="section" style="margin-top:18px;">Story arc</h2>
-<div class="card">
-  <h3>{{ story.title or "(untitled story)" }}</h3>
-  {% if story.state_summary %}
-    <p class="summary">{{ story.state_summary }}</p>
-  {% endif %}
-  <div class="meta">
-    <span class="pill">{{ story.status }}</span>
-    <span class="pill">importance {{ "%.3f"|format(story.importance) }}</span>
-    {% if story.last_activity %}
-      <span class="pill">updated {{ story.last_activity.strftime("%Y-%m-%d %H:%M") }} UTC</span>
-    {% endif %}
-  </div>
+  .anchor { display:flex; gap:16px; align-items:flex-start; position:relative; overflow:hidden;
+    background: linear-gradient(135deg, var(--surface), var(--surface-2)); border:1px solid var(--line);
+    border-radius:16px; padding: clamp(16px,3vw,24px); margin: 22px 0 34px; box-shadow: var(--shadow); }
+  .anchor::before { content:""; position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(400px 160px at 95% -20%, color-mix(in srgb,var(--accent) 16%, transparent), transparent 70%); }
+  .anchor .orb { width:52px; height:52px; flex:none; }
+  .anchor-body { position:relative; }
+  .anchor-body h4 { font-family:var(--display); letter-spacing:.14em; text-transform:uppercase;
+    font-size:11px; color:var(--accent); margin:0 0 8px; }
+  .anchor-body p { margin:0; font-family:var(--serif); font-size: clamp(16px,2.4vw,20px); line-height:1.5; }
+
+  .tl-head { font-family:var(--display); letter-spacing:.14em; text-transform:uppercase; font-size:13px;
+    color:var(--muted); margin: 0 0 20px; display:flex; align-items:center; gap:10px; }
+  .tl-head .rail-bar { width:4px; height:18px; background: linear-gradient(var(--brand),var(--accent)); border-radius:2px; }
+
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:""; position:absolute; left:6px; top:5px; bottom:8px; width:2px;
+    background: linear-gradient(var(--brand), var(--accent)); border-radius:2px; }
+  .tl-event { position:relative; padding-bottom:26px; }
+  .tl-node { position:absolute; left:-30px; top:3px; width:14px; height:14px; border-radius:50%;
+    background:var(--brand); border:3px solid var(--bg); box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 70%, transparent); }
+  .tl-when { font-family:var(--display); font-size:12px; letter-spacing:.06em; color:var(--muted); }
+  .tl-sum { font-family:var(--serif); font-size: clamp(16px,2.3vw,19px); font-weight:600; margin:4px 0 0; line-height:1.35; }
+  .tl-claims { list-style:none; padding:0; margin:12px 0 0; display:flex; flex-direction:column; gap:9px; }
+  .tl-claim { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--fg-dim); }
+  .src-chip { flex:none; font-family:var(--display); font-size:10px; letter-spacing:.05em; padding:2px 8px;
+    border-radius:999px; border:1px solid var(--line); color:var(--muted); white-space:nowrap; margin-top:1px; }
+  .tl-claim.single .src-chip { color:var(--warn); border-color: color-mix(in srgb,var(--warn) 45%, transparent); }
+
+  .btn-read { margin-top:14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff;
+    border:0; border-radius:10px; padding:11px 20px; font-family:var(--display); font-weight:600;
+    letter-spacing:.06em; font-size:13px; }
+  .btn-read:disabled { opacity:.55; cursor:default; }
+  .no-events { color:var(--muted); }
+</style>
+
+<a class="back" href="/">&larr; Back to your briefing</a>
+
+<div class="sh-kicker">
+  <span class="sh-dev"><span class="live-dot"></span>DEVELOPING STORY</span>
+  <span class="chip-ai"><span class="orb-mini"></span>AI-TRACKED</span>
+</div>
+<h1 class="sh-title">{{ story.title or "(untitled story)" }}</h1>
+<div class="sh-meta">
+  <span class="pill status">{{ story.status }}</span>
+  <span class="sh-meter">
+    <span class="meter"><span style="width: {{ (story.importance*100)|round|int }}%"></span></span>
+    <span class="pill">IMPORTANCE {{ (story.importance*100)|round|int }}</span>
+  </span>
+  {% if story.last_activity %}<span class="pill">UPDATED {{ story.last_activity.strftime("%b %d, %H:%M") }} UTC</span>{% endif %}
+  {% for tag in story.topic_tags %}<span class="pill">#{{ tag }}</span>{% endfor %}
 </div>
 
-<h2 class="section">Timeline — {{ events|length }} event{{ "s" if events|length != 1 else "" }}</h2>
+{% if story.state_summary %}
+<div class="anchor">
+  <div class="orb"></div>
+  <div class="anchor-body">
+    <h4>AI Anchor Summary</h4>
+    <p>{{ story.state_summary }}</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="tl-head"><span class="rail-bar"></span>Timeline — {{ events|length }} event{{ 's' if events|length != 1 else '' }}</div>
 
 {% if events %}
-  {% for e in events %}
-    <div class="event">
-      <div class="when">
-        {% if e.occurred_at %}{{ e.occurred_at.strftime("%Y-%m-%d %H:%M") }} UTC{% endif %}
+  <div class="timeline">
+    {% for e in events %}
+      <div class="tl-event">
+        <span class="tl-node"></span>
+        {% if e.occurred_at %}<div class="tl-when">{{ e.occurred_at.strftime("%b %d, %Y · %H:%M") }} UTC</div>{% endif %}
+        <p class="tl-sum">{{ e.summary }}</p>
+        {% if e.claims %}
+          <ul class="tl-claims">
+            {% for c in e.claims %}
+              {% set n = c.source_article_ids|length %}
+              <li class="tl-claim {{ 'single' if n == 1 else '' }}">
+                <span class="src-chip">{{ n }} SRC{% if n == 1 %} · sole{% endif %}</span>
+                <span>{{ c.text }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </div>
-      <div>{{ e.summary }}</div>
-      {% for c in e.claims %}
-        <div class="claim">
-          — {{ c.text }}
-          <span class="tag">({{ c.source_article_ids|length }} source{{ "s" if c.source_article_ids|length != 1 else "" }})</span>
-        </div>
-      {% endfor %}
-    </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
 
-  <button id="mark-read"
+  <button id="mark-read" class="btn-read"
     onclick='markRead([{{ events|map(attribute="id")|join(",") }}])'>
-    Mark all as read
+    ✓ Mark all as read
   </button>
   <script>
     async function markRead(ids) {
@@ -52,7 +124,7 @@
           body: JSON.stringify({ event_ids: ids }),
         });
         const data = await r.json();
-        btn.textContent = `Marked ${data.marked} read`;
+        btn.textContent = `✓ Marked ${data.marked} read`;
       } catch (e) {
         btn.textContent = "Failed — retry";
         btn.disabled = false;
@@ -60,7 +132,6 @@
     }
   </script>
 {% else %}
-  <p class="summary">No events yet — this story is still gathering coverage.</p>
+  <p class="no-events">No events yet — this story is still gathering coverage.</p>
 {% endif %}
-
 {% endblock %}

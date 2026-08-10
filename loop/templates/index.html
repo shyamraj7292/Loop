@@ -1,49 +1,152 @@
 {% extends "base.html" %}
-{% block title %}Loop — your brief{% endblock %}
-{% block content %}
+{% block title %}Loop — your AI news briefing{% endblock %}
 
-<div class="delta">
-  {% if brief.days_away %}
-    Away for <b>{{ brief.days_away }}</b> day{{ "s" if brief.days_away != 1 else "" }} ·
-  {% endif %}
-  <b>{{ brief.stories_moved }}</b> stor{{ "ies" if brief.stories_moved != 1 else "y" }} moved ·
-  <b>{{ brief.stories_new }}</b> new
-  <span class="tag">&nbsp;·&nbsp; {{ length }}-minute brief</span>
-</div>
+{% set section_titles = {"important_regardless": "Top Stories", "for_you": "For You"} %}
 
-{% set section_titles = {
-    "important_regardless": "Important — regardless of your interests",
-    "for_you": "For you"
-} %}
-
-{% for section in brief.sections %}
-  {% if section.stories %}
-    <h2 class="section">{{ section_titles.get(section.label, section.label) }}</h2>
-    {% for s in section.stories %}
-      <a class="card" href="/story/{{ s.id }}">
-        <h3>{{ s.title or "(untitled story)" }}</h3>
-        {% if s.state_summary %}<p class="summary">{{ s.state_summary }}</p>{% endif %}
-        <div class="meta">
-          {% if s.new_event_count %}
-            <span class="pill new">{{ s.new_event_count }} new</span>
-          {% endif %}
-          <span class="pill">{{ s.distinct_sources }} source{{ "s" if s.distinct_sources != 1 else "" }}</span>
-          <span class="pill">importance {{ s.importance }}</span>
-        </div>
-      </a>
-    {% endfor %}
-  {% endif %}
-{% endfor %}
-
-{% set empty = brief.sections | map(attribute='stories') | map('length') | sum %}
-{% if empty == 0 %}
-  <div class="card">
-    <h3>Nothing here yet</h3>
-    <p class="summary">
-      No stories have been synthesised. Run the pipeline:
-      <code>python -m loop.cli run</code> (or wait for the scheduler), then refresh.
-    </p>
+{% block ticker %}
+{% set tick = namespace(has=false) %}
+{% for section in brief.sections %}{% for s in section.stories %}{% if s.new_event_count %}{% set tick.has = true %}{% endif %}{% endfor %}{% endfor %}
+{% if tick.has %}
+<div class="ticker" aria-label="Breaking headlines">
+  <div class="ticker-tag"><span class="live-dot"></span>BREAKING</div>
+  <div class="ticker-track">
+    <div class="ticker-move">
+      {% for _ in range(2) %}
+        {% for section in brief.sections %}{% for s in section.stories %}{% if s.new_event_count %}<span class="ticker-item">{{ s.title }}</span>{% endif %}{% endfor %}{% endfor %}
+      {% endfor %}
+    </div>
   </div>
+</div>
 {% endif %}
+{% endblock %}
 
+{% block content %}
+<style>
+  .hero { display:flex; gap: clamp(16px,3vw,28px); align-items:center; position:relative; overflow:hidden;
+    background: linear-gradient(135deg, var(--surface), var(--surface-2)); border:1px solid var(--line);
+    border-radius: 20px; padding: clamp(18px,3vw,30px); margin-bottom: 30px; box-shadow: var(--shadow); }
+  .hero::before { content:""; position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(520px 220px at 92% -10%, color-mix(in srgb,var(--accent) 18%, transparent), transparent 70%); }
+  .hero-orb { width: clamp(60px,12vw,100px); height: clamp(60px,12vw,100px); }
+  .hero-txt { flex:1; min-width:0; position:relative; }
+  .hero-kicker { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .hero-time { color:var(--muted); font-size:12px; font-family:var(--display); letter-spacing:.06em; }
+  .hero-h { font-family:var(--serif); font-weight:600; font-size: clamp(23px,4.4vw,40px); line-height:1.12;
+    margin:0 0 18px; letter-spacing:-.01em; }
+  .stats { display:flex; gap: clamp(18px,4vw,30px); }
+  .stat { display:flex; flex-direction:column; }
+  .stat b { font-family:var(--display); font-size: clamp(24px,5vw,38px); font-weight:700; line-height:1; }
+  .stat b small { font-size:.5em; font-weight:600; color:var(--muted); }
+  .stat span { font-family:var(--display); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-top:5px; }
+  @media (max-width:640px){ .hero{ flex-direction:column; align-items:flex-start; } }
+
+  .rail { margin: 30px 0; }
+  .rail-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .rail-bar { width:4px; height:22px; border-radius:2px; background:var(--brand); }
+  .rail-you .rail-bar { background: linear-gradient(var(--accent),var(--accent-2)); }
+  .rail-head h2 { font-family:var(--display); font-weight:600; font-size: clamp(15px,2.4vw,18px);
+    letter-spacing:.14em; text-transform:uppercase; margin:0; }
+  .rail-count { font-family:var(--display); font-size:12px; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
+
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap:16px; }
+
+  .card { display:flex; flex-direction:column; gap:10px; background:var(--surface); border:1px solid var(--line);
+    border-radius: var(--radius); padding:16px 18px;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .card:hover { transform: translateY(-3px); border-color: color-mix(in srgb,var(--accent) 45%, var(--line)); box-shadow: var(--shadow); }
+  .card-kicker { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .card-title { font-family:var(--serif); font-weight:600; font-size:19px; line-height:1.25; margin:0; }
+  .card-sum { color:var(--fg-dim); font-size:14px; margin:0;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .card-foot { margin-top:auto; display:flex; align-items:center; gap:10px; padding-top:6px; }
+  .foot-label { font-family:var(--display); font-size:10px; letter-spacing:.12em; color:var(--muted); white-space:nowrap; }
+
+  .card-lead { padding: clamp(20px,3vw,28px); background: linear-gradient(135deg, var(--surface), var(--surface-2));
+    border-color: color-mix(in srgb,var(--brand) 30%, var(--line)); margin-bottom:16px; }
+  .card-lead .card-title { font-size: clamp(22px,3.6vw,32px); }
+  .card-lead .card-sum { -webkit-line-clamp:4; font-size:15px; }
+
+  .badge-new { font-family:var(--display); font-size:10.5px; font-weight:700; letter-spacing:.1em; color:#fff;
+    background:var(--brand); padding:3px 9px; border-radius:999px; }
+  .chip.src { font-family:var(--display); font-size:11px; letter-spacing:.06em; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
+
+  .meter { position:relative; flex:1; height:5px; border-radius:999px; background:var(--surface-2);
+    border:1px solid var(--line); overflow:hidden; max-width:190px; }
+  .meter span { position:absolute; inset:0 auto 0 0; border-radius:999px;
+    background: linear-gradient(90deg, var(--accent), var(--brand)); }
+
+  .empty { text-align:center; padding: 64px 20px; }
+  .empty .orb { width:74px; height:74px; margin:0 auto 20px; }
+  .empty h3 { font-family:var(--serif); font-size:22px; margin:0 0 8px; }
+  .empty p { color:var(--muted); max-width:460px; margin:0 auto; }
+  .empty code { background:var(--surface-2); padding:2px 6px; border-radius:6px; font-size:.9em; }
+</style>
+
+{% macro story_card(s, lead=false) %}
+<a class="card {{ 'card-lead' if lead else '' }}" href="/story/{{ s.id }}">
+  <div class="card-kicker">
+    {% if s.new_event_count %}<span class="badge-new">{{ s.new_event_count }} NEW</span>{% endif %}
+    <span class="chip src">{{ s.distinct_sources }} source{{ 's' if s.distinct_sources != 1 else '' }}</span>
+    <span class="chip-ai"><span class="orb-mini"></span>AI</span>
+  </div>
+  <h3 class="card-title">{{ s.title or '(untitled story)' }}</h3>
+  {% if s.state_summary %}<p class="card-sum">{{ s.state_summary }}</p>{% endif %}
+  <div class="card-foot">
+    <div class="meter" title="importance {{ s.importance }}"><span style="width: {{ (s.importance*100)|round|int }}%"></span></div>
+    <span class="foot-label">IMPORTANCE {{ (s.importance*100)|round|int }}</span>
+  </div>
+</a>
+{% endmacro %}
+
+<section class="hero">
+  <div class="orb hero-orb"></div>
+  <div class="hero-txt">
+    <div class="hero-kicker">
+      <span class="chip-ai"><span class="orb-mini"></span>AI&nbsp;BRIEFING</span>
+      <span class="hero-time">Compiled {{ brief.generated_at[:16].replace('T',' ') }} UTC</span>
+    </div>
+    <h1 class="hero-h">
+      {% if brief.days_away %}You were away {{ brief.days_away }} day{{ 's' if brief.days_away != 1 else '' }}. Here's what changed.
+      {% else %}Here's everything you missed.{% endif %}
+    </h1>
+    <div class="stats">
+      <div class="stat"><b>{{ brief.stories_moved }}</b><span>moved</span></div>
+      <div class="stat"><b>{{ brief.stories_new }}</b><span>new</span></div>
+      <div class="stat"><b>{{ length }}<small>m</small></b><span>read</span></div>
+    </div>
+  </div>
+</section>
+
+{% set total = brief.sections | map(attribute='stories') | map('length') | sum %}
+{% if total == 0 %}
+  <div class="empty">
+    <div class="orb"></div>
+    <h3>The newsroom is warming up</h3>
+    <p>No stories have been synthesised yet. Run a pipeline pass —
+    <code>docker compose run --rm api python -m loop.cli run</code> — or wait for the
+    worker, then refresh.</p>
+  </div>
+{% else %}
+  {% for section in brief.sections %}
+    {% if section.stories %}
+      <section class="rail rail-{{ 'important' if section.label == 'important_regardless' else 'you' }}">
+        <div class="rail-head">
+          <span class="rail-bar"></span>
+          <h2>{{ section_titles.get(section.label, section.label) }}</h2>
+          <span class="rail-count">{{ section.stories|length }}</span>
+        </div>
+        {% if section.label == 'important_regardless' %}
+          {{ story_card(section.stories[0], lead=true) }}
+          {% if section.stories|length > 1 %}
+            <div class="grid">{% for s in section.stories[1:] %}{{ story_card(s) }}{% endfor %}</div>
+          {% endif %}
+        {% else %}
+          <div class="grid">{% for s in section.stories %}{{ story_card(s) }}{% endfor %}</div>
+        {% endif %}
+      </section>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 {% endblock %}

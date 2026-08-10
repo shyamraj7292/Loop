@@ -1,15 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Loop — setup{% endblock %}
 {% block content %}
-<div class="card">
-  <h3>No user yet</h3>
-  <p class="summary">
-    There's no user with id <b>{{ user_id }}</b>. Seed the database first:
-  </p>
-  <pre class="summary">docker compose run --rm api python -m loop.seed --sources sources.yaml</pre>
-  <p class="summary">
-    Then run the pipeline (<code>python -m loop.cli run</code>) and refresh. You
-    can also point at a different user with the <code>X-User-Id</code> header.
-  </p>
+<style>
+  .notice { text-align:center; padding: 60px 20px; }
+  .notice .orb { width:76px; height:76px; margin:0 auto 22px; }
+  .notice h3 { font-family:var(--serif); font-size:24px; margin:0 0 10px; }
+  .notice p { color:var(--muted); max-width:520px; margin:0 auto 16px; }
+  .notice pre { background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; overflow-x:auto; text-align:left; max-width:560px; margin:0 auto;
+    font-size:13px; color:var(--fg-dim); }
+  .notice code { background:var(--surface-2); padding:2px 6px; border-radius:6px; }
+</style>
+<div class="notice">
+  <div class="orb"></div>
+  <h3>No anchor assigned yet</h3>
+  <p>There's no user with id <b>{{ user_id }}</b>. Seed the database so the AI anchor has a
+  reader to brief:</p>
+  <pre>docker compose run --rm api python -m loop.seed --sources sources.yaml</pre>
+  <p style="margin-top:16px">Then run a pipeline pass (<code>python -m loop.cli run</code>) and refresh.
+  You can also point at another reader with the <code>X-User-Id</code> header.</p>
 </div>
 {% endblock %}
