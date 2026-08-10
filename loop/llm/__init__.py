@@ -21,6 +21,10 @@ def get_llm() -> LLMClient:
         from loop.llm.anthropic_client import AnthropicClient
 
         return AnthropicClient()
+    if backend == "gemini":
+        from loop.llm.gemini_client import GeminiClient
+
+        return GeminiClient()
     if backend == "mock":
         from loop.llm.mock import MockClient
 
@@ -29,5 +33,5 @@ def get_llm() -> LLMClient:
     # this scaffold; fail loudly rather than silently mis-synthesising.
     raise ValueError(
         f"Unsupported LLM_BACKEND={backend!r}. "
-        "This scaffold implements: anthropic, mock."
+        "This scaffold implements: anthropic, gemini, mock."
     )

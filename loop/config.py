@@ -27,10 +27,22 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
     # --- LLM backend ---
+    # anthropic | gemini | mock
     llm_backend: str = Field(default="anthropic", alias="LLM_BACKEND")
+
+    # Anthropic
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
     llm_model_small: str = Field(default="claude-haiku-4-5", alias="LLM_MODEL_SMALL")
     llm_model_large: str = Field(default="claude-sonnet-5", alias="LLM_MODEL_LARGE")
+
+    # Gemini
+    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    gemini_model_small: str = Field(
+        default="gemini-2.0-flash", alias="GEMINI_MODEL_SMALL"
+    )
+    gemini_model_large: str = Field(
+        default="gemini-2.0-flash", alias="GEMINI_MODEL_LARGE"
+    )
 
     # --- Embeddings ---
     embed_model: str = Field(default="BAAI/bge-small-en-v1.5", alias="EMBED_MODEL")

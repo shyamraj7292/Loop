@@ -16,8 +16,15 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Install CPU-only PyTorch FIRST so sentence-transformers doesn't drag in the
+# ~2.5GB CUDA/NVIDIA GPU stack. Loop embeds on CPU; this keeps the image around
+# ~1GB (fits the README's 4GB-VPS target) and builds far faster.
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir torch==2.5.1 \
+        --index-url https://download.pytorch.org/whl/cpu
+
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY . .
 
