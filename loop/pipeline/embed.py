@@ -53,11 +53,13 @@ def article_embedding_text(title: str | None, body: str | None) -> str:
     return f"{title}\n\n{body[:1000]}"
 
 
-def embed_pending(session, *, batch_size: int = 64) -> int:
+def embed_pending(session, *, batch_size: int = 64, max_articles: int | None = None) -> int:
     """Embed (and simhash) articles that have text but no vector yet.
 
-    Kept here rather than in a worker so the heavy model import stays in one
-    place. Returns the number of articles embedded.
+    Processes ALL pending articles, in batches of `batch_size` (bounded memory),
+    rather than a single batch — otherwise one pipeline run only ever embeds
+    `batch_size` articles and the backlog never clears. Pass `max_articles` to
+    cap the work per call. Returns the number of articles embedded.
     """
     # Local imports to avoid a circular import at module load.
     from sqlalchemy import or_, select
@@ -65,27 +67,40 @@ def embed_pending(session, *, batch_size: int = 64) -> int:
     from loop.models import Article
     from loop.pipeline.dedup import simhash
 
-    articles = list(
-        session.execute(
-            select(Article)
-            .where(
-                Article.embedding.is_(None),
-                or_(Article.title.is_not(None), Article.body_text.is_not(None)),
-            )
-            .order_by(Article.id.asc())
-            .limit(batch_size)
-        )
-        .scalars()
-        .all()
-    )
-    if not articles:
-        return 0
+    total = 0
+    while True:
+        limit = batch_size
+        if max_articles is not None:
+            remaining = max_articles - total
+            if remaining <= 0:
+                break
+            limit = min(batch_size, remaining)
 
-    texts = [article_embedding_text(a.title, a.body_text) for a in articles]
-    vectors = embed_texts(texts)
-    for article, vector, text in zip(articles, vectors, texts):
-        article.embedding = vector
-        if article.simhash is None:
-            article.simhash = simhash(text)
-    logger.info("Embedded %d article(s)", len(articles))
-    return len(articles)
+        articles = list(
+            session.execute(
+                select(Article)
+                .where(
+                    Article.embedding.is_(None),
+                    or_(Article.title.is_not(None), Article.body_text.is_not(None)),
+                )
+                .order_by(Article.id.asc())
+                .limit(limit)
+            )
+            .scalars()
+            .all()
+        )
+        if not articles:
+            break
+
+        texts = [article_embedding_text(a.title, a.body_text) for a in articles]
+        vectors = embed_texts(texts)
+        for article, vector, text in zip(articles, vectors, texts):
+            article.embedding = vector
+            if article.simhash is None:
+                article.simhash = simhash(text)
+        session.flush()
+        total += len(articles)
+
+    if total:
+        logger.info("Embedded %d article(s)", total)
+    return total

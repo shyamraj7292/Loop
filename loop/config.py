@@ -35,13 +35,15 @@ class Settings(BaseSettings):
     llm_model_small: str = Field(default="claude-haiku-4-5", alias="LLM_MODEL_SMALL")
     llm_model_large: str = Field(default="claude-sonnet-5", alias="LLM_MODEL_LARGE")
 
-    # Gemini
+    # Gemini. `gemini-flash-latest` is a stable alias that resolves to the
+    # current recommended free-tier flash model — more robust than pinning a
+    # version, some of which are gated off for newly-created API keys.
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
     gemini_model_small: str = Field(
-        default="gemini-2.0-flash", alias="GEMINI_MODEL_SMALL"
+        default="gemini-flash-latest", alias="GEMINI_MODEL_SMALL"
     )
     gemini_model_large: str = Field(
-        default="gemini-2.0-flash", alias="GEMINI_MODEL_LARGE"
+        default="gemini-flash-latest", alias="GEMINI_MODEL_LARGE"
     )
 
     # --- Embeddings ---
