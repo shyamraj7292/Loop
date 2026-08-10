@@ -30,7 +30,7 @@ slice).
 - The schema is created by a hand-written Alembic migration
   (`migrations/versions/0001_initial.py`) so the pgvector extension and HNSW
   indexes are set up exactly. Models in `loop/models.py` mirror it.
-- LLM backends are swappable via `LLM_BACKEND` (`anthropic` | `mock`). The
+- LLM backends are swappable via `LLM_BACKEND` (`anthropic` | `gemini`). The
   pipeline only ever talks to the `LLMClient` protocol in `loop/llm/base.py`.
 - Two-tier LLM: `LLM_MODEL_SMALL` (haiku, extraction) vs `LLM_MODEL_LARGE`
   (sonnet, arc synthesis), gated by `IMPORTANCE_THRESHOLD_LARGE_MODEL`.

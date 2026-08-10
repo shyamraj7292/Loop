@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 
 import httpx
 
@@ -104,27 +105,41 @@ class GeminiClient:
             },
         }
 
-        try:
-            resp = httpx.post(
-                _ENDPOINT.format(model=model),
-                headers={
-                    "x-goog-api-key": self._api_key,
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=60.0,
-            )
-        except httpx.HTTPError:
-            logger.exception("Gemini synthesis call failed for story %r", title)
-            return ArcDecision(change="no_change")
+        # Free-tier keys are rate-limited (429) and can be briefly overloaded
+        # (503). Retry those with backoff so we don't silently drop a story.
+        resp = None
+        for attempt in range(4):
+            try:
+                resp = httpx.post(
+                    _ENDPOINT.format(model=model),
+                    headers={
+                        "x-goog-api-key": self._api_key,
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                    timeout=60.0,
+                )
+            except httpx.HTTPError:
+                logger.exception("Gemini call failed for story %r", title)
+                return ArcDecision(change="no_change")
 
-        if resp.status_code >= 400:
-            logger.warning(
-                "Gemini HTTP %s for story %r: %s",
-                resp.status_code,
-                title,
-                resp.text[:300],
-            )
+            if resp.status_code in (429, 503) and attempt < 3:
+                retry_after = resp.headers.get("Retry-After")
+                delay = float(retry_after) if retry_after else 2.0 * (2**attempt)
+                logger.warning(
+                    "Gemini %s for story %r; retrying in %.0fs",
+                    resp.status_code,
+                    title,
+                    delay,
+                )
+                time.sleep(delay)
+                continue
+            break
+
+        if resp is None or resp.status_code >= 400:
+            code = resp.status_code if resp is not None else "n/a"
+            body = resp.text[:300] if resp is not None else ""
+            logger.warning("Gemini HTTP %s for story %r: %s", code, title, body)
             return ArcDecision(change="no_change")
 
         text = self._extract_text(resp.json())

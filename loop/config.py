@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
     # --- LLM backend ---
-    # anthropic | gemini | mock
+    # anthropic | gemini
     llm_backend: str = Field(default="anthropic", alias="LLM_BACKEND")
 
     # Anthropic

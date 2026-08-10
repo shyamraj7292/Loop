@@ -1,7 +1,8 @@
 # ---------------------------------------------------------------------------
-# Loop source registry.
+# Loop source registry — broad, multi-category coverage.
 #
 # Each source declares a feed URL plus metadata used later in ranking:
+#   category         topical bucket (documentation / future topic tagging)
 #   country          ISO country code
 #   lang             ISO language code
 #   authority_weight hand-assigned 0..1 score (see README > The insight / Rank)
@@ -11,17 +12,11 @@
 # ---------------------------------------------------------------------------
 
 sources:
-  # --- India, national English ---
+  # ============================ INDIA — NATIONAL ============================
   - name: The Hindu — National
     feed_url: https://www.thehindu.com/news/national/feeder/default.rss
     homepage: https://www.thehindu.com/
-    country: IN
-    lang: en
-    authority_weight: 0.9
-
-  - name: The Hindu — Business
-    feed_url: https://www.thehindu.com/business/feeder/default.rss
-    homepage: https://www.thehindu.com/business/
+    category: india
     country: IN
     lang: en
     authority_weight: 0.9
@@ -29,34 +24,15 @@ sources:
   - name: Indian Express — India
     feed_url: https://indianexpress.com/section/india/feed/
     homepage: https://indianexpress.com/
+    category: india
     country: IN
     lang: en
     authority_weight: 0.85
-
-  - name: Indian Express — Business
-    feed_url: https://indianexpress.com/section/business/feed/
-    homepage: https://indianexpress.com/section/business/
-    country: IN
-    lang: en
-    authority_weight: 0.85
-
-  - name: Livemint — Economy
-    feed_url: https://www.livemint.com/rss/economy
-    homepage: https://www.livemint.com/
-    country: IN
-    lang: en
-    authority_weight: 0.8
-
-  - name: Business Standard — Economy & Policy
-    feed_url: https://www.business-standard.com/rss/economy-policy-102.rss
-    homepage: https://www.business-standard.com/
-    country: IN
-    lang: en
-    authority_weight: 0.8
 
   - name: NDTV — India
     feed_url: https://feeds.feedburner.com/ndtvnews-india-news
     homepage: https://www.ndtv.com/india
+    category: india
     country: IN
     lang: en
     authority_weight: 0.7
@@ -64,6 +40,7 @@ sources:
   - name: The Times of India — Top Stories
     feed_url: https://timesofindia.indiatimes.com/rssfeedstopstories.cms
     homepage: https://timesofindia.indiatimes.com/
+    category: india
     country: IN
     lang: en
     authority_weight: 0.6
@@ -71,35 +48,198 @@ sources:
   - name: Scroll.in
     feed_url: https://feeds.feedburner.com/ScrollinArticles.rss
     homepage: https://scroll.in/
+    category: india
     country: IN
     lang: en
     authority_weight: 0.65
 
-  # --- International (for corroboration / global stories) ---
-  - name: Reuters — World
-    feed_url: https://www.reutersagency.com/feed/?best-topics=world&post_type=best
-    homepage: https://www.reuters.com/
-    country: GB
-    lang: en
-    authority_weight: 0.95
-
+  # ============================== WORLD ====================================
   - name: BBC News — World
     feed_url: https://feeds.bbci.co.uk/news/world/rss.xml
     homepage: https://www.bbc.com/news/world
+    category: world
     country: GB
     lang: en
     authority_weight: 0.9
 
+  - name: The Guardian — World
+    feed_url: https://www.theguardian.com/world/rss
+    homepage: https://www.theguardian.com/world
+    category: world
+    country: GB
+    lang: en
+    authority_weight: 0.85
+
   - name: Al Jazeera — All
     feed_url: https://www.aljazeera.com/xml/rss/all.xml
     homepage: https://www.aljazeera.com/
+    category: world
     country: QA
     lang: en
     authority_weight: 0.8
 
-  - name: The Guardian — World
-    feed_url: https://www.theguardian.com/world/rss
-    homepage: https://www.theguardian.com/world
+  - name: NPR — News
+    feed_url: https://feeds.npr.org/1001/rss.xml
+    homepage: https://www.npr.org/
+    category: world
+    country: US
+    lang: en
+    authority_weight: 0.85
+
+  - name: France 24 — English
+    feed_url: https://www.france24.com/en/rss
+    homepage: https://www.france24.com/en/
+    category: world
+    country: FR
+    lang: en
+    authority_weight: 0.75
+
+  # ============================ BUSINESS ===================================
+  - name: Livemint — Economy
+    feed_url: https://www.livemint.com/rss/economy
+    homepage: https://www.livemint.com/
+    category: business
+    country: IN
+    lang: en
+    authority_weight: 0.8
+
+  - name: The Hindu — Business
+    feed_url: https://www.thehindu.com/business/feeder/default.rss
+    homepage: https://www.thehindu.com/business/
+    category: business
+    country: IN
+    lang: en
+    authority_weight: 0.9
+
+  - name: BBC News — Business
+    feed_url: https://feeds.bbci.co.uk/news/business/rss.xml
+    homepage: https://www.bbc.com/news/business
+    category: business
     country: GB
     lang: en
     authority_weight: 0.85
+
+  - name: The Guardian — Business
+    feed_url: https://www.theguardian.com/uk/business/rss
+    homepage: https://www.theguardian.com/business
+    category: business
+    country: GB
+    lang: en
+    authority_weight: 0.8
+
+  # ============================ TECHNOLOGY =================================
+  - name: BBC News — Technology
+    feed_url: https://feeds.bbci.co.uk/news/technology/rss.xml
+    homepage: https://www.bbc.com/news/technology
+    category: technology
+    country: GB
+    lang: en
+    authority_weight: 0.8
+
+  - name: The Verge
+    feed_url: https://www.theverge.com/rss/index.xml
+    homepage: https://www.theverge.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.7
+
+  - name: Ars Technica
+    feed_url: https://feeds.arstechnica.com/arstechnica/index
+    homepage: https://arstechnica.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.75
+
+  - name: TechCrunch
+    feed_url: https://techcrunch.com/feed/
+    homepage: https://techcrunch.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.65
+
+  # ============================= SCIENCE ===================================
+  - name: The Guardian — Science
+    feed_url: https://www.theguardian.com/science/rss
+    homepage: https://www.theguardian.com/science
+    category: science
+    country: GB
+    lang: en
+    authority_weight: 0.8
+
+  - name: BBC News — Science & Environment
+    feed_url: https://feeds.bbci.co.uk/news/science_and_environment/rss.xml
+    homepage: https://www.bbc.com/news/science_and_environment
+    category: science
+    country: GB
+    lang: en
+    authority_weight: 0.85
+
+  - name: ScienceDaily
+    feed_url: https://www.sciencedaily.com/rss/all.xml
+    homepage: https://www.sciencedaily.com/
+    category: science
+    country: US
+    lang: en
+    authority_weight: 0.6
+
+  # ============================== SPORTS ===================================
+  - name: BBC Sport
+    feed_url: https://feeds.bbci.co.uk/sport/rss.xml
+    homepage: https://www.bbc.com/sport
+    category: sports
+    country: GB
+    lang: en
+    authority_weight: 0.8
+
+  - name: The Guardian — Sport
+    feed_url: https://www.theguardian.com/sport/rss
+    homepage: https://www.theguardian.com/sport
+    category: sports
+    country: GB
+    lang: en
+    authority_weight: 0.75
+
+  # ============================== HEALTH ===================================
+  - name: BBC News — Health
+    feed_url: https://feeds.bbci.co.uk/news/health/rss.xml
+    homepage: https://www.bbc.com/news/health
+    category: health
+    country: GB
+    lang: en
+    authority_weight: 0.85
+
+  - name: NPR — Health
+    feed_url: https://feeds.npr.org/1128/rss.xml
+    homepage: https://www.npr.org/sections/health-shots/
+    category: health
+    country: US
+    lang: en
+    authority_weight: 0.8
+
+  # ========================== ENTERTAINMENT ================================
+  - name: BBC News — Entertainment & Arts
+    feed_url: https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml
+    homepage: https://www.bbc.com/news/entertainment_and_arts
+    category: entertainment
+    country: GB
+    lang: en
+    authority_weight: 0.8
+
+  - name: The Guardian — Culture
+    feed_url: https://www.theguardian.com/culture/rss
+    homepage: https://www.theguardian.com/culture
+    category: entertainment
+    country: GB
+    lang: en
+    authority_weight: 0.75
+
+  - name: Variety
+    feed_url: https://variety.com/feed/
+    homepage: https://variety.com/
+    category: entertainment
+    country: US
+    lang: en
+    authority_weight: 0.6

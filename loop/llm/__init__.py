@@ -25,13 +25,8 @@ def get_llm() -> LLMClient:
         from loop.llm.gemini_client import GeminiClient
 
         return GeminiClient()
-    if backend == "mock":
-        from loop.llm.mock import MockClient
-
-        return MockClient()
-    # ollama / openai are declared in the README roadmap but not implemented in
-    # this scaffold; fail loudly rather than silently mis-synthesising.
+    # ollama / openai are declared in the README roadmap but not implemented yet;
+    # fail loudly rather than silently mis-synthesising.
     raise ValueError(
-        f"Unsupported LLM_BACKEND={backend!r}. "
-        "This scaffold implements: anthropic, gemini, mock."
+        f"Unsupported LLM_BACKEND={backend!r}. Implemented backends: anthropic, gemini."
     )
