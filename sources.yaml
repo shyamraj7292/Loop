@@ -127,6 +127,39 @@ sources:
     lang: en
     authority_weight: 0.8
 
+  # ======================= MARKETS / STOCKS ===============================
+  - name: MarketWatch — Top Stories
+    feed_url: http://feeds.marketwatch.com/marketwatch/topstories/
+    homepage: https://www.marketwatch.com/
+    category: markets
+    country: US
+    lang: en
+    authority_weight: 0.75
+
+  - name: CNBC — Top News
+    feed_url: https://www.cnbc.com/id/100003114/device/rss/rss.html
+    homepage: https://www.cnbc.com/
+    category: markets
+    country: US
+    lang: en
+    authority_weight: 0.75
+
+  - name: Livemint — Markets
+    feed_url: https://www.livemint.com/rss/markets
+    homepage: https://www.livemint.com/market
+    category: markets
+    country: IN
+    lang: en
+    authority_weight: 0.8
+
+  - name: Economic Times — Markets
+    feed_url: https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms
+    homepage: https://economictimes.indiatimes.com/markets
+    category: markets
+    country: IN
+    lang: en
+    authority_weight: 0.7
+
   # ============================ TECHNOLOGY =================================
   - name: BBC News — Technology
     feed_url: https://feeds.bbci.co.uk/news/technology/rss.xml
@@ -159,6 +192,54 @@ sources:
     country: US
     lang: en
     authority_weight: 0.65
+
+  - name: MIT Technology Review
+    feed_url: https://www.technologyreview.com/feed/
+    homepage: https://www.technologyreview.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.8
+
+  - name: Wired
+    feed_url: https://www.wired.com/feed/rss
+    homepage: https://www.wired.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.75
+
+  - name: VentureBeat — AI
+    feed_url: https://venturebeat.com/category/ai/feed/
+    homepage: https://venturebeat.com/category/ai/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.65
+
+  - name: The Hacker News (cybersecurity)
+    feed_url: https://feeds.feedburner.com/TheHackersNews
+    homepage: https://thehackernews.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.7
+
+  - name: BleepingComputer (cybersecurity)
+    feed_url: https://www.bleepingcomputer.com/feed/
+    homepage: https://www.bleepingcomputer.com/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.7
+
+  - name: Ars Technica — Security
+    feed_url: https://feeds.arstechnica.com/arstechnica/security
+    homepage: https://arstechnica.com/security/
+    category: technology
+    country: US
+    lang: en
+    authority_weight: 0.75
 
   # ============================= SCIENCE ===================================
   - name: The Guardian — Science

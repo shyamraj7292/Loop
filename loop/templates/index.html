@@ -4,15 +4,21 @@
 {% set section_titles = {"important_regardless": "Top Stories", "for_you": "For You"} %}
 
 {% block ticker %}
-{% set tick = namespace(has=false) %}
-{% for section in brief.sections %}{% for s in section.stories %}{% if s.new_event_count %}{% set tick.has = true %}{% endif %}{% endfor %}{% endfor %}
-{% if tick.has %}
+{# Collect unique breaking headlines (a story can appear in Top + its category). #}
+{% set tick = namespace(items=[], ids=[]) %}
+{% for section in brief.sections %}{% for s in section.stories %}
+  {% if s.new_event_count and s.id not in tick.ids %}
+    {% set _ = tick.ids.append(s.id) %}{% set _ = tick.items.append(s.title) %}
+  {% endif %}
+{% endfor %}{% endfor %}
+{% if tick.items %}
+{# ~9s per headline keeps the crawl slow and readable regardless of count. #}
 <div class="ticker" aria-label="Breaking headlines">
   <div class="ticker-tag"><span class="live-dot"></span>BREAKING</div>
   <div class="ticker-track">
-    <div class="ticker-move">
+    <div class="ticker-move" style="animation-duration: {{ [tick.items|length * 9, 45]|max }}s">
       {% for _ in range(2) %}
-        {% for section in brief.sections %}{% for s in section.stories %}{% if s.new_event_count %}<span class="ticker-item">{{ s.title }}</span>{% endif %}{% endfor %}{% endfor %}
+        {% for title in tick.items %}<span class="ticker-item">{{ title }}</span>{% endfor %}
       {% endfor %}
     </div>
   </div>
