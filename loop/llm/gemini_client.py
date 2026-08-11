@@ -121,7 +121,7 @@ class GeminiClient:
                 )
             except httpx.HTTPError:
                 logger.exception("Gemini call failed for story %r", title)
-                return ArcDecision(change="no_change")
+                return ArcDecision(change="no_change", deferred=True)
 
             if resp.status_code in (429, 503) and attempt < 3:
                 retry_after = resp.headers.get("Retry-After")
@@ -140,7 +140,10 @@ class GeminiClient:
             code = resp.status_code if resp is not None else "n/a"
             body = resp.text[:300] if resp is not None else ""
             logger.warning("Gemini HTTP %s for story %r: %s", code, title, body)
-            return ArcDecision(change="no_change")
+            # Rate limits / overload / server errors are transient — defer so
+            # the story is retried next pass instead of marked done.
+            transient = resp is None or resp.status_code in (429, 500, 502, 503, 504)
+            return ArcDecision(change="no_change", deferred=transient)
 
         text = self._extract_text(resp.json())
         if not text:

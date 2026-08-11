@@ -50,6 +50,10 @@ class ArcDecision(BaseModel):
     event: NewEvent | None = None
     # An updated rolling state summary (present when the arc moved).
     state_summary: str | None = None
+    # Transient failure (rate limit, network, 5xx) rather than a real verdict.
+    # When True, the pipeline must NOT mark the story processed, so it retries
+    # on the next pass instead of being silently lost.
+    deferred: bool = False
 
 
 # JSON Schema handed to the Anthropic structured-output API. Kept in lockstep

@@ -67,9 +67,9 @@ class AnthropicClient:
                 },
                 messages=[{"role": "user", "content": user_content}],
             )
-        except Exception:  # network / API error — treat as "no change" this pass
+        except Exception:  # network / API error — transient, retry next pass
             logger.exception("Anthropic synthesis call failed for story %r", title)
-            return ArcDecision(change="no_change")
+            return ArcDecision(change="no_change", deferred=True)
 
         if resp.stop_reason == "refusal":
             logger.warning("Synthesis refused for story %r", title)

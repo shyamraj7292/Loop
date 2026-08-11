@@ -124,6 +124,12 @@ def synthesize_story(session: Session, story: Story) -> Event | None:
     now = _utcnow()
     event: Event | None = None
 
+    # Transient failure (rate limit / network): leave the story unprocessed so
+    # it is retried on the next pass rather than silently lost.
+    if decision.deferred:
+        logger.info("Story %s deferred (transient LLM failure); will retry", story.id)
+        return None
+
     if decision.change == "new_event" and decision.event is not None:
         allowed = _all_article_ids(session, story.id)
         grounded = validate_claims(decision.event.claims, allowed)
